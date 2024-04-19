@@ -1,6 +1,18 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
 
-const userSchema = new mongoose.Schema({
+export interface UserDocument extends Document {
+    username: string;
+    email: string;
+    password: string;
+    isVerified: boolean;
+    role: 'admin' | 'manager' | 'user'; 
+    forgotPasswordToken?: string;
+    forgotPasswordTokenExpiry?: Date;
+    verifyToken?: string;
+    verifyTokenExpiry?: Date;
+}
+
+const userSchema = new mongoose.Schema<UserDocument>({
     username: {
         type: String,
         required: [true, "Please provide a username"],
@@ -19,16 +31,18 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    isAdmin: {
-        type: Boolean,
-        default: false,
+    role: {
+        type: String,
+        enum: ["user", "admin","manager"],
+        default: "user",
     },
+   
     forgotPasswordToken: String,
     forgotPasswordTokenExpiry: Date,
     verifyToken: String,
     verifyTokenExpiry: Date,
 })
 
-const User = mongoose.models.users || mongoose.model("users", userSchema);
+const User = mongoose.models.users || mongoose.model<UserDocument>("users", userSchema);
 
 export default User;

@@ -1,35 +1,37 @@
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-export { default } from "next-auth/middleware"
+import { getSession } from 'next-auth/react'
+import Role from './models/roleSchema'
 
-export function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname
+export async function authMiddleware(request:any) {
+  // Check if the path is a public path
+  const isPublicPath = ['/login', '/signup', '/verifyemail'].includes(request.nextUrl.pathname)
 
-  const isPublicPath = path === '/login' || path === '/signup' || path === '/verifyemail'
+  // Get the session
+  const session = await getSession({ req: request.nextRequest })
 
-  const token = request.cookies.get('token')?.value || ''
-
-  if(isPublicPath && token) {
+  // If it's a public path and there's a session, redirect to home
+  if (isPublicPath && session) {
     return NextResponse.redirect(new URL('/', request.nextUrl))
   }
 
-  if (!isPublicPath && !token) {
+  // If it's not a public path and there's no session, redirect to login
+  if (!isPublicPath && !session) {
     return NextResponse.redirect(new URL('/login', request.nextUrl))
   }
 
-  // If the conditions are not met, return null or handle the error in some way
-  // You can log an error or return an error response
-  return NextResponse.error() // Example error response
+  // Return null if no redirection is needed
+  return null
+}
+
+export async function roleMiddleware(request:any) {
+  // Your role-based middleware logic here
+  // For example, fetching user role from the database and checking permissions
+
+  // Return null if no redirection is needed
+  return null
 }
 
 // See "Matching Paths" below to learn more
 export const config = {
-  matcher: [
- 
-    '/profile',
-    
-    '/signup',
-    '/verifyemail'
-   
-  ]
+  matcher: ["/",'/profile', '/verifyemail']
 }
