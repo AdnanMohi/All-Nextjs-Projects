@@ -1,14 +1,10 @@
-"use client "
+"use client"
 
+import React, {  useEffect } from "react";
 import { SessionProvider as NextAuthSessionProvider } from "next-auth/react";
-import { useEffect } from "react";
 
-const SessionProvider = ({children}:any )  => {
-useEffect(() => {
-   const isClient = typeof window !== "undefined";
-    if(!isClient) return;
 
-}, [])
+ const SessionProvider = ({children}:any )  => {
 
   return(
    <NextAuthSessionProvider>
