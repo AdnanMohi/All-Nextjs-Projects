@@ -1,50 +1,57 @@
 "use client";
-import axios from "axios";
-import Link from "next/link";
-import React, {useState} from "react";
-import {toast} from "react-hot-toast";
-import {useRouter} from "next/navigation";
+
+import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
+ 
+
+const Profile = () => {
+  // Access session data and status
+  const { data: session, status } = useSession();
+  const [loading, setLoading] = React.useState(false);
+  const router = useRouter();
+ 
+
+  // Handle signout
+  const handleSignOut = async () => {
+    await signOut({ redirect: false }); // Sign out without redirect
+    router.push('/'); // Redirect to the home page after signout
+  };
 
 
-export default function ProfilePage() {
-    const router = useRouter()
-    const [data, setData] = useState("nothing")
-    const logout = async () => {
-        try {
-            await axios.get('/api/users/logout')
-            toast.success('Logout successful')
-            router.push('/login')
-        } catch (error:any) {
-            console.log(error.message);
-            toast.error(error.message)
-        }
-    }
+ // Update loading state based on session status
+ useEffect(() => {
+  if (status === "loading") {
+    setLoading(true);
+  } else {
+    setLoading(false);
+  }
+}, [status]);
+  
 
-    const getUserDetails = async () => {
-        const res = await axios.get('/api/users/me')
-        console.log(res.data);
-        setData(res.data.data._id)
-    }
+  return (
+    <div
+      className="min-h-screen py-20"
+      style={{
+        backgroundImage: `url("/background.png")`,
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+      }}
+    >
+      <div className="w-full max-w-2xl grid place-items-center mx-auto py-40 gap-6 bg-slate-50">
+        <span className="text-4xl tracking-wide font-semibold capitalize text-[#5D7DF3]">
+          welcome to the Dashboard
+        </span>
+        <h1 className="text-2xl tracking-normal py-10 font-semibold">
+          {loading ? "Processing": session?.user?.name }</h1>
+        
 
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen py-2">
-            <h1>Profile</h1>
-            <hr />
-            <p>Profile page</p>
-            <h2 className="p-1 rounded bg-green-500">{data === 'nothing' ? "Nothing" : <Link href={`/profile/${data}`}>{data}
-            </Link>}</h2>
-        <hr />
-        <button
-        onClick={logout}
-        className="bg-blue-500 mt-4 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >Logout</button>
+        <button onClick={handleSignOut} className="bg-slate-950 text-white rounded text-lg w-auto px-6 py-3 uppercase">
+          Logout
+        </button>
+      </div>
+    </div>
+  );
+};
 
-        <button
-        onClick={getUserDetails}
-        className="bg-green-800 mt-4 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >GetUser Details</button>
-
-
-            </div>
-    )
-}
+export default Profile;

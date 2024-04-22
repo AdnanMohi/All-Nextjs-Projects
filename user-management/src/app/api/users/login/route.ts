@@ -13,22 +13,18 @@ export async function POST(request: NextRequest){
         const {email, password} = reqBody;
         console.log("reqBody", reqBody);
        
-
         //check if user exists
         const user = await User.findOne({email})
         if(!user){
             return NextResponse.json({error: "User does not exist"}, {status: 400})
         }
-      
-        
-        
+    
         //check if password is correct
         const validPassword = await bcryptjs.compare(password, user.password)
         if(!validPassword){
             return NextResponse.json({error: "Invalid password"}, {status: 400})
         }
-        console.log("Invalid password");
-        
+    
         //create token data
         const tokenData = {
             id: user._id,
@@ -43,13 +39,16 @@ export async function POST(request: NextRequest){
             success: true,
 
         })
-        console.log("Login successful");
         
         response.cookies.set("token", token, {
-            httpOnly: true, 
-            
+            httpOnly: true,   
         })
+
+        console.log("user logged in successfully",user.username, user.email)
+
+
         return response;
+    
 
     } catch (error: any) {
         return NextResponse.json({error: error.message}, {status: 500})

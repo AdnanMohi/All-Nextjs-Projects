@@ -1,37 +1,37 @@
-import { NextResponse } from 'next/server'
-import { getSession } from 'next-auth/react'
-import Role from './models/roleSchema'
+import { getToken } from "next-auth/jwt";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function authMiddleware(request:any) {
-  // Check if the path is a public path
-  const isPublicPath = ['/login', '/signup', '/verifyemail'].includes(request.nextUrl.pathname)
+export async function middleware(req: NextRequest) {
+  const path = req.nextUrl.pathname;
+  const token = await getToken({
+    req: req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
 
-  // Get the session
-  const session = await getSession({ req: request.nextRequest })
+  // Define public paths that don't require authentication
+  const publicPaths = ["/", "/signup"];
 
-  // If it's a public path and there's a session, redirect to home
-  if (isPublicPath && session) {
-    return NextResponse.redirect(new URL('/', request.nextUrl))
+  // Check if the requested path requires authentication
+  const requiresAuth = !publicPaths.includes(path);
+
+  // Redirect unauthorized users to the home page
+  if (requiresAuth && !token) {
+    return NextResponse.redirect(new URL("/", req.nextUrl));
   }
 
-  // If it's not a public path and there's no session, redirect to login
-  if (!isPublicPath && !session) {
-    return NextResponse.redirect(new URL('/login', request.nextUrl))
+  // Redirect authenticated users away from verify email and reset password pages
+  if (token && (path === "/resetPassword" || path === "/verifyEmail")) {
+    return NextResponse.redirect(new URL("/profile", req.nextUrl));
   }
-
-  // Return null if no redirection is needed
-  return null
 }
 
-export async function roleMiddleware(request:any) {
-  // Your role-based middleware logic here
-  // For example, fetching user role from the database and checking permissions
-
-  // Return null if no redirection is needed
-  return null
-}
-
-// See "Matching Paths" below to learn more
 export const config = {
-  matcher: ["/",'/profile', '/verifyemail']
-}
+  // Define all paths to be matched by the middleware
+  matcher: [
+    "/", 
+    "/signup", 
+    "/profile",
+    "/resetPassword",
+    '/verifyEmail',
+  ],
+};
